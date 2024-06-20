@@ -1,0 +1,791 @@
+<html>
+    <head>
+        <title>Floyd's XG editor</title>
+        <style>
+            /** colours 2543x1380 */
+            * {
+                box-sizing: border-box;
+            }
+            :root {
+                --blue: #3377cc;
+                --light_grey: #eceded;
+                --grey: #777;
+                --dark_grey: #333;
+                --black: #1a1a18;
+                --white: #fff;
+            }
+            body {
+                font-family: Calibri, Arial, Helvetica, sans-serif;
+                background-color: var(--white);
+                overflow: hidden;
+                touch-action: none;
+            }
+            ul {
+                list-style-type: none;
+                margin:0;
+                padding:0;
+            }
+            ul li {
+                list-style-type: none;
+                margin:0 5px 0 0;
+                padding:0;
+                text-align: center;
+                display:inline-block;
+            }
+            label {
+                clear:both;
+                display:block;
+                font-weight: bold;
+            }
+            legend {
+                text-transform: uppercase;
+                font-weight: bold;
+                color:var(--white);
+                background:var(--blue);
+                padding:5px;
+                border-radius: 5px;
+                position: absolute;
+                top:8px;
+            }
+            fieldset {
+                margin-top:10px;
+                display:inline-block;
+                border:0;
+                border-radius: 10px;
+                padding-top: 44px;
+                position: relative;
+                background: rgb(51,119,204);
+                background: radial-gradient(circle, rgba(51,119,204,0.15870098039215685) 0%, rgba(51,119,204,0.3715861344537815) 100%);
+            }
+            fieldset.tab_2,
+            fieldset.tab_3,
+            fieldset.tab_4,
+            fieldset.tab_5,
+            .vari {
+                display:none;
+            }
+            fieldset.f100 {
+                width:100%;
+            }
+            input[type=range] {
+                appearance: none;
+                height:256px;
+                width:20px;
+                writing-mode: vertical-lr;
+                direction: rtl;
+                vertical-align: middle;
+                background: var(--light_grey);
+                border-radius: 10px;
+                outline:none;
+                clear: both;
+                box-shadow: 0 0 5px var(--blue);
+            }
+            input[type=range]::-webkit-slider-thumb {
+                appearance: none;
+                width:35px;
+                height:35px;
+                border-radius: 50%;
+                background: var(--blue);
+                cursor: pointer;
+            }
+            /* The switch - the box around the slider */
+            .switch {
+                position: relative;
+                display: inline-block;
+                width: 50px;
+                height: 34px;
+                margin-right:10px;
+                margin-bottom:2px;
+            }
+
+            /* Hide default HTML checkbox */
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            /* The slider */
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: var(--white);
+                -webkit-transition: .4s;
+                transition: .4s;
+            }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 26px;
+                width: 26px;
+                left: 4px;
+                bottom: 4px;
+                background-color: var(--grey);
+                -webkit-transition: .4s;
+                transition: .4s;
+            }
+
+            input:checked + .slider {
+                background-color: var(--blue);
+            }
+            input:checked + .slider:before {
+                background-color: var(--white);
+            }
+
+            input:focus + .slider {
+                box-shadow: 0 0 1px var(--blue);
+            }
+
+            input:checked + .slider:before {
+                -webkit-transform: translateX(16px);
+                -ms-transform: translateX(16px);
+                transform: translateX(16px);
+            }
+
+            /* Rounded sliders */
+            .slider.round {
+                border-radius: 34px;
+            }
+
+            .slider.round:before {
+                border-radius: 50%;
+            }
+
+            .navi {
+                overflow-y: auto;
+                border:0;
+                border-radius: 10px;
+                box-shadow: 0 0 5px var(--blue);
+                background: var(--light_grey);
+                padding:3px 0;
+            }
+            .navi option {
+                padding:3px 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <!--
+            Conventions
+            FIELDSETS have a class name "tab tab_x"
+            these can then be made visible by switching off all .tab, and then switching on .tab_x
+
+            RANGER SLIDERS and other inputs have an ID of either
+            cc_xx       -   for example cc_94 for Variation Effect Send
+            sysex_xx    -   xx is the exact SysEx command for that control, with XX being the value modified by the user and NN the MIDI channel
+
+        -->
+        <form name="xg_editor" method="post">
+            <fieldset>
+                <legend>Menu</legend>
+                <ul>
+                    <li>
+                        <select class="navi" size="12" id="select_editor">
+                            <option value="tab_1" selected>MIDI setup</option>
+                            <option value="tab_2">Synth basics</option>
+                            <option value="tab_3">Reverb</option>
+                            <option value="tab_4">Chorus</option>
+                            <option value="tab_5">Variation</option>
+                        </select>
+                        <label for="select_editor">Editor Tab</label>
+                    </li>
+                </ul>
+            </fieldset>
+            <fieldset class="tab tab_1"><legend>MIDI devices</legend>
+            <ul>
+                <li>
+                    <label>
+                        <select size="5" class="navi" id="midi_input_device">
+                            <option>none</option>
+                        </select><br>
+                        Input<br>&nbsp;
+                    </label>
+                    <label>
+                        <select size="5" class="navi" id="midi_output_device">
+                            <option>none</option>
+                        </select><br>
+                        Output
+                    </label>
+                </li>
+            </ul>
+            </fieldset>
+            <fieldset class="tab tab_1"><legend>MIDI channel</legend>
+            <ul>
+                <li>
+                    <label>
+                        <select size="12" class="navi" id="midi_channel">
+                            <option value="0">Channel 01</option>
+                            <option value="1">Channel 02</option>
+                            <option value="2">Channel 03</option>
+                            <option value="3">Channel 04</option>
+                            <option value="4">Channel 05</option>
+                            <option value="5">Channel 06</option>
+                            <option value="6">Channel 07</option>
+                            <option value="7">Channel 08</option>
+                            <option value="8">Channel 09</option>
+                            <option value="9">Channel 10</option>
+                            <option value="10">Channel 11</option>
+                            <option value="11">Channel 12</option>
+                            <option value="12">Channel 13</option>
+                            <option value="13">Channel 14</option>
+                            <option value="14">Channel 15</option>
+                            <option value="15">Channel 16</option>
+                        </select><br>
+                        output
+                    </label>
+                </li>
+            </ul>
+            </fieldset>
+            <fieldset class="tab tab_2">
+                <legend>Filter</legend>
+                <ul><li>
+                    <input type="range" value="127" max="127" id="cc_74">
+                    <label for="cc_74">cutoff</label>
+                </li>
+                <li>
+                    <input type="range" value="0" max="127" id="cc_71">
+                    <label for="cc_71">resonance</label>
+                </li></ul>
+            </fieldset>
+            <fieldset class="tab tab_2">
+                <legend>Envelope</legend>
+                <ul><li>
+                    <input type="range" value="0" max="127" id="cc_73">
+                    <label for="cc_73">attack</label>
+                </li>
+                <li>
+                    <input type="range" value="50" max="127" id="nrpn_decay">
+                    <label for="nrpn_decay">decay</label>
+                </li>
+                <li>
+                    <input type="range" value="50" max="127" id="cc_72">
+                    <label for="cc_72">release</label>
+                </li></ul>
+            </fieldset>
+            <fieldset class="tab tab_2">
+                <legend>LFO</legend>
+                <ul>
+                    <li>
+                        <input type="range" value="0" max="127" id="nrpn_lforate">
+                        <label for="nrpn_lforate">rate</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="nrpn_lfodepth">
+                        <label for="nrpn_lfodepth">depth</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="nrpn_lfodelay">
+                        <label for="nrpn_lfodelay">delay</label>
+                    </li>
+                </ul>
+            </fieldset>
+            <fieldset class="tab tab_2">
+                <legend>Portamento</legend>
+                <ul>
+                    <li>
+                        <label class="switch">
+                            <input type="checkbox" id="cc_65">
+                            <span class="slider round"></span>
+                        </label>
+                        <label>on/off</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="cc_5">
+                        <label for="cc_5">time</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="cc_84">
+                        <label for="cc_84">control</label>
+                    </li>
+                </ul>
+            </fieldset>
+            <fieldset class="tab tab_2">
+                <legend>Pitch Envelope</legend>
+                <ul>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x08,NN,0x69,XX,0xF7">
+                        <label for="sysex_sysex_0xF0,0x43,0x10,0x4C,0x08,NN,0x69,XX,0xF7">Atck Lvl</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x08,NN,0x6A,XX,0xF7">
+                        <label for="sysex_sysex_0xF0,0x43,0x10,0x4C,0x08,NN,0x6A,XX,0xF7">Atck time</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x08,NN,0x6B,XX,0xF7">
+                        <label for="sysex_sysex_0xF0,0x43,0x10,0x4C,0x08,NN,0x6B,XX,0xF7">Rls lvl</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x08,NN,0x6C,XX,0xF7">
+                        <label for="sysex_sysex_0xF0,0x43,0x10,0x4C,0x08,NN,0x6C,XX,0xF7">Rls time</label>
+                    </li>
+                </ul>
+            </fieldset>
+            <fieldset class="tab tab_3">
+                <legend>Reverb</legend>
+                <ul>
+                    <li>
+                        <select class="navi" size="12" id="reverb_type">
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x00,0x00,0x00,0xF7">Off</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x00,0x01,0x00,0xF7">Hall 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x00,0x01,0x01,0xF7">Hall 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x00,0x02,0x00,0xF7">Room 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x00,0x02,0x01,0xF7">Room 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x00,0x02,0x02,0xF7">Room 3</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x00,0x03,0x00,0xF7">Stage 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x00,0x03,0x01,0xF7">Stage 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x00,0x04,0x00,0xF7">Plate</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x00,0x10,0x00,0xF7">White Room</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x00,0x11,0x00,0xF7">Tunnel</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x00,0x13,0x00,0xF7">Basement</option>
+                        </select>
+                        <label for="reverb_type">Type</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="cc_91">
+                        <label for="cc_91">level</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="69" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x02,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x02,XX,0xF7">time</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="10" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x03,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x03,XX,0xF7">diffuse</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="63" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x04,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x04,XX,0xF7">predelay</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="52" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x05,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x05,XX,0xF7">High Pass</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="60" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x06,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x06,XX,0xF7">Low Pass</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x0B,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x0B,XX,0xF7">dry/wet</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x0C,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x0C,XX,0xF7">return</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="3" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x11,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x11,XX,0xF7">density</label>
+                    </li>
+                    <li>
+                        <input type="range" value="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x12,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x12,XX,0xF7">balance</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x14,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x14,XX,0xF7">feedback</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x07,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x07,XX,0xF7">width</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x08,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x08,XX,0xF7">height</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x09,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x09,XX,0xF7">depth</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x0A,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x0A,XX,0xF7">wall</label>
+                    </li>
+                </ul>
+            </fieldset>
+            <fieldset class="tab tab_4">
+                <legend>Chorus</legend>
+                <ul>
+                    <li>
+                        <select class="navi" size="12" id="chorus_type">
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x20,0x00,0x00,0xF7">Off</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x20,0x41,0x00,0xF7">Chorus 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x20,0x41,0x01,0xF7">Chorus 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x20,0x41,0x02,0xF7">Chorus 3</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x20,0x41,0x08,0xF7">Chorus 4</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x20,0x42,0x00,0xF7">Celeste 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x20,0x42,0x01,0xF7">Celeste 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x20,0x42,0x02,0xF7">Celeste 3</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x20,0x42,0x08,0xF7">Celeste 4</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x20,0x43,0x00,0xF7">Flanger 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x20,0x43,0x01,0xF7">Flanger 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x20,0x43,0x08,0xF7">Flanger 3</option>
+                        </select>
+                        <label for="chorus_type">Type</label>
+                    </li>
+                    <li>
+                        <label class="switch">
+                            <input type="checkbox" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x34,XX,0xF7">
+                            <span class="slider round"></span>
+                        </label>
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x34,XX,0xF7">Input Mono/Stereo</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="cc_93">
+                        <label for="cc_93">level</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x22,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x22,XX,0xF7">LFO Freq</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x23,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x23,XX,0xF7">Phase mod</label>
+                    </li>
+                    <li>
+                        <input type="range" value="1" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x23,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x23,XX,0xF7">Feedback</label>
+                    </li>
+                    <li>
+                        <input type="range" value="8" min="8" max="40" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x27,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x27,XX,0xF7">EQ Low Freq</label>
+                    </li>
+                    <li>
+                        <input type="range" value="52" min="52" max="76" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x28,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x27,XX,0xF8">EQ Low Gain</label>
+                    </li>
+                    <li>
+                        <input type="range" value="28" min="28" max="58" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x29,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x29,XX,0xF8">EQ Hi Freq</label>
+                    </li>
+                    <li>
+                        <input type="range" value="52" min="52" max="76" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x2A,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x2A,XX,0xF8">EQ Hi Gain</label>
+                    </li>
+                    <li>
+                        <input type="range" value="1" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x2B,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x2B,XX,0xF8">Dry/Wet</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x2C,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x2C,XX,0xF8">Return</label>
+                    </li>
+                    <li>
+                        <input type="range" value="1" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x2D,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x2D,XX,0xF8">Pan</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x2E,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x2E,XX,0xF8">Reverb send</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x25,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x25,XX,0xF8">Delay offset</label>
+                    </li>
+                    <li>
+                        <input type="range" value="64" min="4" max="124" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x33,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x33,XX,0xF7">Phase diff</label>
+                    </li>
+                </ul>
+            </fieldset>
+            <fieldset class="tab tab_5">
+                <legend>Variation</legend>
+                <ul>
+                    <li>
+                        <select class="navi" size="12" id="variation_type">
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x00,0x00,0xF7">Off</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x40,0x00,0xF7">Thru</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x01,0x00,0xF7">Hall 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x01,0x01,0xF7">Hall 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x02,0x00,0xF7">Room 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x02,0x01,0xF7">Room 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x02,0x02,0xF7">Room 3</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x03,0x00,0xF7">Stage 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x03,0x01,0xF7">Stage 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x04,0x00,0xF7">Plate</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x05,0x00,0xF7">Delay LCR</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x06,0x00,0xF7">Delay LR</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x07,0x00,0xF7">Echo</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x08,0x00,0xF7">Cross Delay</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x09,0x00,0xF7">Early Ref 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x09,0x01,0xF7">Early Ref 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x0A,0x00,0xF7">Gated Revb</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x0B,0x00,0xF7">Reverse Gate</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x14,0x00,0xF7">Karaoke 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x14,0x01,0xF7">Karaoke 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x14,0x02,0xF7">Karaoke 3</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x41,0x00,0xF7">Chorus 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x41,0x01,0xF7">Chorus 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x41,0x02,0xF7">Chorus 3</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x41,0x08,0xF7">Chorus 4</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x42,0x00,0xF7">Celeste 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x42,0x01,0xF7">Celeste 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x42,0x02,0xF7">Celeste 3</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x42,0x08,0xF7">Celeste 4</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x43,0x01,0xF7">Flanger 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x43,0x02,0xF7">Flanger 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x43,0x08,0xF7">Flanger 3</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x44,0x00,0xF7">Symphonic</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x45,0x00,0xF7">Rotary</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x46,0x00,0xF7">Tremolo</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x47,0x00,0xF7">Auto Pan</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x48,0x00,0xF7">Phaser 1</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x48,0x08,0xF7">Phaser 2</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x49,0x00,0xF7">Distortion</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x4A,0x00,0xF7">Overdrive</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x4B,0x00,0xF7">Amp Sim</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x4C,0x00,0xF7">3-Band EQ</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x4D,0x00,0xF7">2-Band EQ (Stereo)</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x40,0x4E,0x00,0xF7">Auto Wah</option>
+                        </select>
+                        <label for="reverb_type">Type</label>
+                    </li>
+                    <li>
+                        <label class="switch">
+                            <input type="checkbox" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x5A,XX,0xF7">
+                            <span class="slider round"></span>
+                        </label>
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x5A,XX,0xF7">insert/system</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="cc_94">
+                        <label for="cc_94">send</label>
+                    </li>
+                    <!-- Amp Simulator -->
+                    <li class="vari Amp_Sim">
+                        <select class="navi" size="12" id="amp_type">
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x44,0x00,0x00,0xF7">Off</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x44,0x00,0x01,0xF7">Stack</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x44,0x00,0x02,0xF7">Combo</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x44,0x00,0x03,0xF7">Tube</option>
+                        </select>
+                        <label for="amp_type">Amp model</label>
+                    </li>
+                    <li class="vari Amp_Sim">
+                        <input type="range" value="10" min="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x42,0x00,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x42,0x00,XX,0xF7">Drive</label>
+                    </li>
+                    <li class="vari Amp_Sim">
+                        <input type="range" value="34" min="34" max="60" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x46,0x00,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x46,0x00,XX,0xF7">LPF Cutoff</label>
+                    </li>
+                    <li class="vari Amp_Sim">
+                        <input type="range" value="127" min="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x48,0x00,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x48,0x00,XX,0xF7">Output lv</label>
+                    </li>
+                    <li class="vari Amp_Sim">
+                        <input type="range" value="64" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x54,0x00,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x54,0x00,XX,0xF7">dry/wet</label>
+                    </li>
+                    <li class="vari Amp_Sim">
+                        <input type="range" value="0" min="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x70,0x00,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x70,0x00,XX,0xF7">Edge</label>
+                    </li>
+                    <!-- Reverbs -->
+                    <li class="vari Hall_1 Hall_2 Room_1 Room_2 Room_3 Stage_1 Stage_2 Plate">
+                        <input type="range" value="0" min="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x42,0x00,XX,0xF7_a">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x42,0x00,XX,0xF7_a">Time</label>
+                    </li>
+                    <li class="vari Hall_1 Hall_2 Room_1 Room_2 Room_3 Stage_1 Stage_2 Plate">
+                        <input type="range" value="0" min="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x44,0x00,XX,0xF7">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x44,0x00,XX,0xF7">Diffusion</label>
+                    </li>
+                    <li class="vari Hall_1 Hall_2 Room_1 Room_2 Room_3 Stage_1 Stage_2 Plate">
+                        <input type="range" value="0" min="0" max="63" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x46,0x00,XX,0xF7_a">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x46,0x00,XX,0xF7_a">predelay</label>
+                    </li>
+                    <li class="vari Hall_1 Hall_2 Room_1 Room_2 Room_3 Stage_1 Stage_2 Plate">
+                        <input type="range" value="0" min="0" max="52" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x48,0x00,XX,0xF7_a">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x48,0x00,XX,0xF7_a">HPF cutoff</label>
+                    </li>
+                    <li class="vari Hall_1 Hall_2 Room_1 Room_2 Room_3 Stage_1 Stage_2 Plate">
+                        <input type="range" value="34" min="34" max="60" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4A,0x00,XX,0xF7_a">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4A,0x00,XX,0xF7_a">LPF cutoff</label>
+                    </li>
+                    <li class="vari Hall_1 Hall_2 Room_1 Room_2 Room_3 Stage_1 Stage_2 Plate">
+                        <input type="range" value="1" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x54,0x00,XX,0xF7_a">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x54,0x00,XX,0xF7_a">dry/wet</label>
+                    </li>
+                    <li class="vari Hall_1 Hall_2 Room_1 Room_2 Room_3 Stage_1 Stage_2 Plate">
+                        <input type="range" value="0" min="0" max="63" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x70,XX,0xF7_a">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x70,XX,0xF7_a">delay time</label>
+                    </li>
+                    <li class="vari Hall_1 Hall_2 Room_1 Room_2 Room_3 Stage_1 Stage_2 Plate">
+                        <input type="range" value="1" min="1" max="3" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x71,XX,0xF7_a">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x71,XX,0xF7_a">density</label>
+                    </li>
+                    <li class="vari Hall_1 Hall_2 Room_1 Room_2 Room_3 Stage_1 Stage_2 Plate">
+                        <input type="range" value="1" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x72,XX,0xF7_a">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x72,XX,0xF7_a">balance</label>
+                    </li>
+                    <li class="vari Hall_1 Hall_2 Room_1 Room_2 Room_3 Stage_1 Stage_2 Plate">
+                        <input type="range" value="1" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x74,XX,0xF7_a">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x74,XX,0xF7_a">feedback</label>
+                    </li>
+                    <li class="vari Delay_LCR">
+                        <input type="range" value="1" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4A,0x00,XX,0xF7_b">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4A,0x00,XX,0xF7_b">fb lv</label>
+                    </li>
+                </ul>
+            </fieldset>
+        </form>
+        <script>
+            /**
+             * COPY & PASTE programming from MDN
+             * basic idea here:
+             * all kinds of event listeners are attached to the UI on "midi success"
+             * 
+             * the script then reads the name of the element and its value
+             * the name is parsed and converted to a midi message
+             * I KNOW I COULD HAVE USED THE DATA FIELD
+             * but why waste that extra space when this works as well
+             */
+            navigator.permissions.query({ name: "midi", sysex: true }).then((result) => {
+            if (result.state === "granted") {
+                // Access granted.
+            } else if (result.state === "prompt") {
+                // Using API will prompt for permission
+            }
+            // Permission was denied by user prompt or permission policy
+            });
+            let midi = null; // global MIDIAccess object
+            var channel=0;
+            function onMIDISuccess(midiAccess) {
+                console.log("MIDI ready!");
+                midi = midiAccess; // store in the global (in real usage, would probably keep in an object instance)
+                listInputsAndOutputs(midi);
+                for (const entry of midiAccess.outputs) {
+                    var output = entry[1];
+                }
+                /** add event listener to main menu */
+                document.getElementById("select_editor").onclick=function(evt) {
+                    document.querySelectorAll(".tab").forEach(cb=>{
+                        cb.style.display="none";
+                    });
+                    document.querySelectorAll("."+this.value).forEach(cb=>{
+                        cb.style.display="inline-block";
+                    });
+                }
+                /** midi channel setup */
+                document.getElementById("midi_channel").onclick=function(evt) {
+                    channel=this.value;
+                }
+                /** add event listener to all checkboxes */
+                document.querySelectorAll("input[type=checkbox]").forEach(cb=>{
+                    cb.addEventListener("click",function(evt){
+                        var cc=this.id.split("_");
+                        var t=0;
+                        if(this.checked==true) t=127;
+                        if(cc[0]=="cc") {
+                            sendCC(midi, output.id, cc[1], t);
+                        }
+                        else {
+                            var hex=parseInt(t).toString(16);
+                            if (hex.length<2) {
+                                hex="0"+hex;
+                            }
+                            sendSX(midi,output.id,this.id.split("_")[1].replace("XX","0x"+hex).split(","));
+                        }
+                    });
+                });
+                /** reverb selector */
+                document.querySelectorAll("#reverb_type,#chorus_type,#variation_type").forEach(ranger=>{
+                    ranger.addEventListener("change",function(evt){
+                        sendSX(midi,output.id,this.value.split(","));
+                        /** show all options belonging to a Variation effect, identified by the name of the effect you've chosen
+                         *  the power of naming conventions ;-) */
+                        var identifier=this.options[this.selectedIndex].text.replace(" ","_").replace(" ","_");
+                        document.querySelectorAll(".vari").forEach(cb=>{
+                            cb.style.display="none";
+                        });
+                        document.querySelectorAll("."+identifier).forEach(cb=>{
+                            cb.style.display="inline-block";
+                        });
+                    });
+                });
+                /** add event listener to all faders */
+                document.querySelectorAll("input[type=range]").forEach(ranger=>{
+                    ranger.addEventListener('input',function(evnt){
+                        var cc=this.id.split("_");
+                        var nrpn=[];
+                        switch(cc[0]) {
+                            case "sysex":
+                                var hex=parseInt(this.value).toString(16);
+                                if (hex.length<2) {
+                                    hex="0"+hex;
+                                }
+                                var hexchn=parseInt(channel).toString(16);
+                                if (hexchn.length<2) {
+                                    hexchn="0"+hexchn;
+                                }
+                                sendSX(midi,output.id,cc[1].replace("XX","0x"+hex).replace("NN",hexchn).split(","));
+                                break;
+                            case "nrpn":
+                                switch(cc[1]) {
+                                    case "decay":
+                                        nrpn=[1,64];
+                                    break;
+                                    case "lforate":
+                                        nrpn=[1,8];
+                                    break;
+                                    case "lfodepth":
+                                        nrpn=[1,9];
+                                    break;
+                                    case "lfodelay":
+                                        nrpn=[1,"0A"];
+                                    break;
+                                }
+                                sendCC(midi, output.id, 99, parseInt(nrpn[0],16));
+                                sendCC(midi, output.id, 98, parseInt(nrpn[1],16));
+                                sendCC(midi, output.id, 6, this.value);
+                                break;
+                            default:
+                                sendCC(midi, output.id, cc[1], this.value);
+                        }
+                    });
+                });
+            }
+
+            function onMIDIFailure(msg) {
+                alert("Y U do dis :-(");
+                console.error(`Failed to get MIDI access - ${msg}`);
+            }
+
+            navigator.requestMIDIAccess({sysex:true}).then(onMIDISuccess, onMIDIFailure);
+
+            function listInputsAndOutputs(midiAccess) {
+                for (const entry of midiAccess.inputs) {
+                    const input = entry[1];
+                    
+                    /** create options */
+                    document.getElementById("midi_input_device").appendChild(new Option(input.name,input.id));
+                }
+
+                for (const entry of midiAccess.outputs) {
+                    const output = entry[1];
+                    /** create options */
+                    document.getElementById("midi_output_device").appendChild(new Option(output.name,output.id));
+                }
+            }
+
+            function sendCC(midiAccess, portID, cc, val) {
+                /** the channel we send on is B0 + the channel selected by the user */
+                var sendchannel=parseInt("B0",16);
+                sendchannel="0x"+parseInt(parseInt(sendchannel)+parseInt(channel)).toString(16);
+                const noteOnMessage = [sendchannel, cc, val]; 
+                const output = midiAccess.outputs.get(portID);
+                output.send(noteOnMessage); // sends the message.
+            }
+
+            function sendSX(midiAccess,portID,sysex) {
+                const output = midiAccess.outputs.get(portID);
+                output.send(sysex);
+            }
+
+        </script>
+    </body>
+</html>

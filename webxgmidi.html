@@ -577,7 +577,7 @@
                         <input type="range" value="127" min="0" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x48,0x00,XX,0xF7">
                         <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x48,0x00,XX,0xF7">Output lv</label>
                     </li>
-                    <li class="vari Amp_Sim">
+                    <li class="vari Amp_Sim Cross_Delay">
                         <input type="range" value="64" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x54,0x00,XX,0xF7">
                         <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x54,0x00,XX,0xF7">dry/wet</label>
                     </li>
@@ -651,21 +651,37 @@
                         <input type="range" value="1" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x54,0x00,XX,0xF7_c">
                         <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x54,0x00,XX,0xF7_c">dry/wet</label>
                     </li>
-                    <li class="vari Delay_LR Delay_LCR Echo">
+                    <li class="vari Delay_LR Delay_LCR Echo Cross_Delay">
                         <input type="range" value="0" min="8" max="40" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x72,XX,0xF7_c">
                         <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x72,XX,0xF7_c">EQ LF</label>
                     </li>
-                    <li class="vari Delay_LR Delay_LCR Echo">
+                    <li class="vari Delay_LR Delay_LCR Echo Cross_Delay">
                         <input type="range" value="0" min="8" max="40" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x73,XX,0xF7_c">
                         <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x73,XX,0xF7_c">EQ LG</label>
                     </li>
-                    <li class="vari Delay_LR Delay_LCR Echo">
+                    <li class="vari Delay_LR Delay_LCR Echo Cross_Delay">
                         <input type="range" value="0" min="8" max="40" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x74,XX,0xF7_c">
                         <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x74,XX,0xF7_c">EQ HF</label>
                     </li>
-                    <li class="vari Delay_LR Delay_LCR Echo">
+                    <li class="vari Delay_LR Delay_LCR Echo Cross_Delay">
                         <input type="range" value="0" min="8" max="40" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x75,XX,0xF7_c">
                         <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x75,XX,0xF7_c">EQ HG</label>
+                    </li>
+                    <li class="vari Cross_Delay">
+                        <select class="navi" size="12" id="cd_select">
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x48,0x00,0x00,0xF7">Left</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x48,0x00,0x01,0xF7">Right</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x48,0x00,0x02,0xF7">L+R</option>
+                        </select>
+                        <label for="cd_select">input</label>
+                    </li>
+                    <li class="vari Cross_Delay">
+                        <input type="range" value="1" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x46,0x00,XX,0xF7_c">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x46,0x00,XX,0xF7_c">fdbck</label>
+                    </li>
+                    <li class="vari Cross_Delay">
+                        <input type="range" value="1" min="1" max="10" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4A,0x00,XX,0xF7_d">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4A,0x00,XX,0xF7_d">HiDamp</label>
                     </li>
                 </ul>
             </fieldset>

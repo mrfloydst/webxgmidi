@@ -276,7 +276,15 @@
                     </li>
                     <li>
                         <input type="range" value="0" max="127" id="nrpn_lfodepth">
-                        <label for="nrpn_lfodepth">depth</label>
+                        <label for="nrpn_lfodepth">pitch</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="cc_95">
+                        <label for="cc_95">filter</label>
+                    </li>
+                    <li>
+                        <input type="range" value="0" max="127" id="cc_92">
+                        <label for="cc_92">amp</label>
                     </li>
                     <li>
                         <input type="range" value="0" max="127" id="nrpn_lfodelay">
@@ -726,6 +734,7 @@
                 /** midi channel setup */
                 document.getElementById("midi_channel").onclick=function(evt) {
                     channel=this.value;
+                    setLFOControl(midi,output,channel);
                 }
                 /** add event listener to all checkboxes */
                 document.querySelectorAll("input[type=checkbox]").forEach(cb=>{
@@ -801,6 +810,17 @@
                         }
                     });
                 });
+                setLFOControl(midi,output,channel);
+            }
+
+            function setLFOControl(midi,output,channel) {
+                /**
+                 * experiment: control filter LFO
+                 */
+                sendSX(midi,output.id,[0xF0,0x43,0x10,0x4C,0x08,channel,0x59,95,0xF7]);
+                sendSX(midi,output.id,[0xF0,0x43,0x10,0x4C,0x08,channel,0x5E,127,0xF7]);
+                sendSX(midi,output.id,[0xF0,0x43,0x10,0x4C,0x08,channel,0x60,92,0xF7]);
+                sendSX(midi,output.id,[0xF0,0x43,0x10,0x4C,0x08,channel,0x66,127,0xF7]);
             }
 
             function onMIDIFailure(msg) {

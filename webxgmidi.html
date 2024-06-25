@@ -847,6 +847,10 @@
                     });
                 });
                 setLFOControl(channel);
+                /**
+                 * try a sysex dump request
+                 */
+                sendSX([0xF0,0x43,0x20,0x4C,0x08,0x00,0x00,0xF7]);
             }
 
             function setLFOControl(channel) {
@@ -899,6 +903,11 @@
                     if(midi_input.name!=midi_output.name) {
                         midi_output.send(msg.data);
                     }
+                    //console.log(msg.data)
+                    console.log(parseInt(msg.data.length).toString(16));
+                    msg.data.forEach(cb=>{
+                        console.log(parseInt(cb).toString(16));
+                    });
                 };
             }
 

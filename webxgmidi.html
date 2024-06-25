@@ -13,6 +13,8 @@
                 --dark_grey: #333;
                 --black: #1a1a18;
                 --white: #fff;
+                --orange: #f95;
+                --green: #9f5;
             }
             body {
                 font-family: Calibri, Arial, Helvetica, sans-serif;
@@ -167,6 +169,19 @@
             .navi option {
                 padding:3px 10px;
             }
+            #midi_status {
+                display:inline-block;
+                width:14px;
+                height:14px;
+                background-color: var(--orange);
+                border-radius: 50%;
+                margin-top:2px;
+                position:absolute;
+                right:5px;
+                top:6px;
+                box-shadow: 0 0 5px var(--orange);
+                border:1px solid var(--black);
+            }
         </style>
     </head>
     <body>
@@ -182,7 +197,7 @@
         -->
         <form name="xg_editor" method="post">
             <fieldset>
-                <legend>Menu</legend>
+                <legend>Menu &nbsp; &nbsp; &nbsp;<span id="midi_status"></span></legend>
                 <ul>
                     <li>
                         <select class="navi" size="12" id="select_editor">
@@ -706,22 +721,29 @@
              * but why waste that extra space when this works as well
              */
             navigator.permissions.query({ name: "midi", sysex: true }).then((result) => {
-            if (result.state === "granted") {
-                // Access granted.
-            } else if (result.state === "prompt") {
-                // Using API will prompt for permission
-            }
-            // Permission was denied by user prompt or permission policy
+                if (result.state === "granted") {
+                    // Access granted.
+                } else if (result.state === "prompt") {
+                    // Using API will prompt for permission
+                }
+                    // Permission was denied by user prompt or permission policy
             });
-            let midi = null; // global MIDIAccess object
-            var channel=0;
+            let midi = null;        // global MIDIAccess object
+            let midi_output=null;   // output device
+            let midi_input=null;    // input device
+            var channel=0;          // active channel
             function onMIDISuccess(midiAccess) {
-                console.log("MIDI ready!");
+                document.getElementById("midi_status").style.backgroundColor="var(--green)";
+                document.getElementById("midi_status").style.boxShadow="0 0 5px var(--green);";
                 midi = midiAccess; // store in the global (in real usage, would probably keep in an object instance)
                 listInputsAndOutputs(midi);
                 for (const entry of midiAccess.outputs) {
-                    var output = entry[1];
+                    midi_output = entry[1];
                 }
+                for (const entry of midiAccess.inputs) {
+                    midi_input = entry[1];
+                }
+                setupInputs();
                 /** add event listener to main menu */
                 document.getElementById("select_editor").onclick=function(evt) {
                     document.querySelectorAll(".tab").forEach(cb=>{
@@ -734,8 +756,22 @@
                 /** midi channel setup */
                 document.getElementById("midi_channel").onclick=function(evt) {
                     channel=this.value;
-                    setLFOControl(midi,output,channel);
+                    setLFOControl(channel);
                 }
+                /** event handler for midi device selector */
+                document.querySelectorAll("#midi_input_device,#midi_output_device").forEach(cb=>{
+                    cb.addEventListener("click",function(evt){
+                        switch(this.id) {
+                            case "midi_input_device":
+                                midi_input = midiAccess.inputs.get(this.options[this.selectedIndex].value);
+                                setupInputs();
+                                break;
+                            case "midi_output_device":
+                                midi_output = midiAccess.outputs.get(this.options[this.selectedIndex].value);
+                                break;
+                        }
+                    });
+                });
                 /** add event listener to all checkboxes */
                 document.querySelectorAll("input[type=checkbox]").forEach(cb=>{
                     cb.addEventListener("click",function(evt){
@@ -743,21 +779,21 @@
                         var t=0;
                         if(this.checked==true) t=127;
                         if(cc[0]=="cc") {
-                            sendCC(midi, output.id, cc[1], t);
+                            sendCC(cc[1], t);
                         }
                         else {
                             var hex=parseInt(t).toString(16);
                             if (hex.length<2) {
                                 hex="0"+hex;
                             }
-                            sendSX(midi,output.id,this.id.split("_")[1].replace("XX","0x"+hex).split(","));
+                            sendSX(this.id.split("_")[1].replace("XX","0x"+hex).split(","));
                         }
                     });
                 });
                 /** reverb selector */
                 document.querySelectorAll("#reverb_type,#chorus_type,#variation_type").forEach(ranger=>{
                     ranger.addEventListener("change",function(evt){
-                        sendSX(midi,output.id,this.value.split(","));
+                        sendSX(this.value.split(","));
                         /** show all options belonging to a Variation effect, identified by the name of the effect you've chosen
                          *  the power of naming conventions ;-) */
                         var identifier=this.options[this.selectedIndex].text.replace(" ","_").replace(" ","_");
@@ -784,7 +820,7 @@
                                 if (hexchn.length<2) {
                                     hexchn="0"+hexchn;
                                 }
-                                sendSX(midi,output.id,cc[1].replace("XX","0x"+hex).replace("NN",hexchn).split(","));
+                                sendSX(cc[1].replace("XX","0x"+hex).replace("NN",hexchn).split(","));
                                 break;
                             case "nrpn":
                                 switch(cc[1]) {
@@ -801,26 +837,26 @@
                                         nrpn=[1,"0A"];
                                     break;
                                 }
-                                sendCC(midi, output.id, 99, parseInt(nrpn[0],16));
-                                sendCC(midi, output.id, 98, parseInt(nrpn[1],16));
-                                sendCC(midi, output.id, 6, this.value);
+                                sendCC(99, parseInt(nrpn[0],16));
+                                sendCC(98, parseInt(nrpn[1],16));
+                                sendCC(6, this.value);
                                 break;
                             default:
-                                sendCC(midi, output.id, cc[1], this.value);
+                                sendCC(cc[1], this.value);
                         }
                     });
                 });
-                setLFOControl(midi,output,channel);
+                setLFOControl(channel);
             }
 
-            function setLFOControl(midi,output,channel) {
+            function setLFOControl(channel) {
                 /**
                  * experiment: control filter LFO
                  */
-                sendSX(midi,output.id,[0xF0,0x43,0x10,0x4C,0x08,channel,0x59,95,0xF7]);
-                sendSX(midi,output.id,[0xF0,0x43,0x10,0x4C,0x08,channel,0x5E,127,0xF7]);
-                sendSX(midi,output.id,[0xF0,0x43,0x10,0x4C,0x08,channel,0x60,92,0xF7]);
-                sendSX(midi,output.id,[0xF0,0x43,0x10,0x4C,0x08,channel,0x66,127,0xF7]);
+                sendSX([0xF0,0x43,0x10,0x4C,0x08,channel,0x59,95,0xF7]);
+                sendSX([0xF0,0x43,0x10,0x4C,0x08,channel,0x5E,127,0xF7]);
+                sendSX([0xF0,0x43,0x10,0x4C,0x08,channel,0x60,92,0xF7]);
+                sendSX([0xF0,0x43,0x10,0x4C,0x08,channel,0x66,127,0xF7]);
             }
 
             function onMIDIFailure(msg) {
@@ -845,18 +881,25 @@
                 }
             }
 
-            function sendCC(midiAccess, portID, cc, val) {
+            function sendCC(cc, val) {
                 /** the channel we send on is B0 + the channel selected by the user */
                 var sendchannel=parseInt("B0",16);
                 sendchannel="0x"+parseInt(parseInt(sendchannel)+parseInt(channel)).toString(16);
                 const noteOnMessage = [sendchannel, cc, val]; 
-                const output = midiAccess.outputs.get(portID);
-                output.send(noteOnMessage); // sends the message.
+                midi_output.send(noteOnMessage); // sends the message.
             }
 
-            function sendSX(midiAccess,portID,sysex) {
-                const output = midiAccess.outputs.get(portID);
-                output.send(sysex);
+            function sendSX(sysex) {
+                midi_output.send(sysex);
+            }
+
+            /** create a midi router so people can use an external keyboard to play */
+            function setupInputs() {
+                midi_input.onmidimessage = (msg) => {
+                    if(midi_input.name!=midi_output.name) {
+                        midi_output.send(msg.data);
+                    }
+                };
             }
 
         </script>

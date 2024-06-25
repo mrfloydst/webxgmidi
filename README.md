@@ -6,6 +6,6 @@ There's a great XG parameter list over at http://www.studio4all.de/htmle/framese
 
 How to use:
 Download the HTML file from the release https://github.com/mrfloydst/webxgmidi/releases/download/first/webxgmidi.html . 
-Open that HTML file in a modern Browser that supports WebMIDI (read: anything but Safari).
+Open that HTML file in a modern browser that supports WebMIDI (read: anything but Safari).
 Confirm your browser is allowed to use MIDI.
 You can use an external keyboard to play notes and send control data, this has a MIDI router built in.

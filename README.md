@@ -12,4 +12,3 @@ You can use an external keyboard to play notes and send control data, this has a
 
 I made this to have an interesting video on my YouTube channel, https://www.youtube.com/@mr_floydst  ;-)
 Support me by streaming my music on Apple Music https://music.apple.com/de/album/not-my-hyena/1657940323
-<iframe width="560" height="315" src="https://www.youtube.com/embed/DJVFJifyvvg?si=SSZg61NDoc-g8Ssb" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>

@@ -14,7 +14,3 @@ I made this to have an interesting video on my YouTube channel, https://www.yout
 Support me by streaming my music on Apple Music https://music.apple.com/de/album/not-my-hyena/1657940323
 
 [![Watch the video](https://img.youtube.com/vi/DJVFJifyvvg/hqdefault.jpg)](https://www.youtube.com/embed/DJVFJifyvvg)
-
-[<img src="https://img.youtube.com/vi/DJVFJifyvvg/hqdefault.jpg" width="600" height="300"
-/>](https://www.youtube.com/embed/DJVFJifyvvg)
-

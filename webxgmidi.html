@@ -312,10 +312,17 @@
                 <ul>
                     <li>
                         <label class="switch">
-                            <input type="checkbox" id="cc_65">
+                            <input type="checkbox" id="cc_65" value="127">
                             <span class="slider round"></span>
                         </label>
                         <label>on/off</label>
+                    </li>
+                    <li>
+                        <label class="switch">
+                            <input type="checkbox" value="1" id="sysex_0xF0,0x43,0x10,0x4C,0x08,NN,0x05,XX,0xF7">
+                            <span class="slider round"></span>
+                        </label>
+                        <label>mono</label>
                     </li>
                     <li>
                         <input type="range" value="0" max="127" id="cc_5">
@@ -452,7 +459,7 @@
                     </li>
                     <li>
                         <label class="switch">
-                            <input type="checkbox" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x34,XX,0xF7">
+                            <input type="checkbox" value="1" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x34,XX,0xF7">
                             <span class="slider round"></span>
                         </label>
                         <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x34,XX,0xF7">Inpt M/St</label>
@@ -569,7 +576,7 @@
                     </li>
                     <li>
                         <label class="switch">
-                            <input type="checkbox" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x5A,XX,0xF7">
+                            <input type="checkbox" value="1" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x5A,XX,0xF7">
                             <span class="slider round"></span>
                         </label>
                         <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x5A,XX,0xF7">insert/system</label>
@@ -706,6 +713,59 @@
                         <input type="range" value="1" min="1" max="10" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4A,0x00,XX,0xF7_d">
                         <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4A,0x00,XX,0xF7_d">HiDamp</label>
                     </li>
+                    <!-- early reflections controls -->
+                     
+                    <li class="vari Early_Ref_1 Early_Ref_2">
+                        <select class="navi" size="12" id="early_ref_type">
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x42,0x00,0x00,0xF7">S-H</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x42,0x00,0x01,0xF7">L-H</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x42,0x00,0x02,0xF7">Rdm</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x42,0x00,0x03,0xF7">Rvs</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x42,0x00,0x04,0xF7">Plate</option>
+                            <option value="0xF0,0x43,0x10,0x4C,0x02,0x01,0x42,0x00,0x05,0xF7">Spring</option>
+                        </select>
+                        <label for="early_ref_type">Type</label>
+                    </li>
+                    <li class="vari Early_Ref_1 Early_Ref_2">
+                        <input type="range" value="0" min="0" max="44" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x44,0x00,XX,0xF7_d">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x44,0x00,XX,0xF7_d">Room Size</label>
+                    </li>
+                    <li class="vari Early_Ref_1 Early_Ref_2">
+                        <input type="range" value="0" min="0" max="10" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x46,0x00,XX,0xF7_d">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x46,0x00,XX,0xF7_d">Diffusion</label>
+                    </li>
+                    <li class="vari Early_Ref_1 Early_Ref_2">
+                        <input type="range" value="0" min="0" max="63" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x48,0x00,XX,0xF7_d">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x48,0x00,XX,0xF7_d">Delay</label>
+                    </li>
+                    <li class="vari Early_Ref_1 Early_Ref_2">
+                        <input type="range" value="1" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4A,0x00,XX,0xF7_d">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4A,0x00,XX,0xF7_d">Fdbck</label>
+                    </li>
+                    <li class="vari Early_Ref_1 Early_Ref_2">
+                        <input type="range" value="0" min="0" max="52" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4C,0x00,XX,0xF7_d">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4C,0x00,XX,0xF7_d">HPF</label>
+                    </li>
+                    <li class="vari Early_Ref_1 Early_Ref_2">
+                        <input type="range" value="34" min="34" max="60" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4E,0x00,XX,0xF7_d">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x4E,0x00,XX,0xF7_d">LPF</label>
+                    </li>
+                    <li class="vari Early_Ref_1 Early_Ref_2">
+                        <input type="range" value="1" min="1" max="127" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x54,0x00,XX,0xF7_d">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x54,0x00,XX,0xF7_d">dry/wet</label>
+                    </li>
+                    <li class="vari Early_Ref_1 Early_Ref_2">
+                        <input type="range" value="0" min="0" max="10" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x70,XX,0xF7_d">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x70,XX,0xF7_d">liveness</label>
+                    </li>
+                    <li class="vari Early_Ref_1 Early_Ref_2">
+                        <input type="range" value="0" min="0" max="3" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x71,XX,0xF7_d">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x71,XX,0xF7_d">density</label>
+                    </li>
+                    <li class="vari Early_Ref_1 Early_Ref_2">
+                        <input type="range" value="1" min="1" max="10" id="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x72,XX,0xF7_d">
+                        <label for="sysex_0xF0,0x43,0x10,0x4C,0x02,0x01,0x72,XX,0xF7_d">hi dmp</label>
+                    </li>
                 </ul>
             </fieldset>
         </form>
@@ -777,7 +837,7 @@
                     cb.addEventListener("click",function(evt){
                         var cc=this.id.split("_");
                         var t=0;
-                        if(this.checked==true) t=127;
+                        if(this.checked==true) t=this.value;
                         if(cc[0]=="cc") {
                             sendCC(cc[1], t);
                         }
@@ -786,7 +846,7 @@
                             if (hex.length<2) {
                                 hex="0"+hex;
                             }
-                            sendSX(this.id.split("_")[1].replace("XX","0x"+hex).split(","));
+                            sendSX(this.id.split("_")[1].replace("XX","0x"+hex).replace("NN",channel).split(","));
                         }
                     });
                 });

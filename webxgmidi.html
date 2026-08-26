@@ -63,6 +63,7 @@
             fieldset.tab_3,
             fieldset.tab_4,
             fieldset.tab_5,
+            fieldset.tab_6,
             .vari {
                 display:none;
             }
@@ -257,6 +258,17 @@
                 </li>
             </ul>
             </fieldset>
+            <!-- <fieldset class="tab tab_1"><legend>Device Type</legend>
+            <ul>
+                <li>
+                    <label>
+                        <select size="12" class="navi" id="midi_device">
+                             <option></option>
+                        </select>
+                    </label>
+                </li>
+            </ul>
+            </fieldset> -->
             <fieldset class="tab tab_2">
                 <legend>Filter</legend>
                 <ul><li>
@@ -1406,6 +1418,7 @@
                                 break;
                             case "midi_output_device":
                                 midi_output = midiAccess.outputs.get(this.options[this.selectedIndex].value);
+                                initDevice();
                                 break;
                         }
                     });
@@ -1484,11 +1497,7 @@
                         }
                     });
                 });
-                setLFOControl(channel);
-                /**
-                 * try a sysex dump request
-                 */
-                sendSX([0xF0,0x43,0x20,0x4C,0x08,0x00,0x00,0xF7]);
+                initDevice();
             }
 
             function setLFOControl(channel) {
@@ -1499,6 +1508,15 @@
                 sendSX([0xF0,0x43,0x10,0x4C,0x08,channel,0x5E,127,0xF7]);
                 sendSX([0xF0,0x43,0x10,0x4C,0x08,channel,0x60,92,0xF7]);
                 sendSX([0xF0,0x43,0x10,0x4C,0x08,channel,0x66,127,0xF7]);
+            }
+
+            async function initDevice() {
+                sendSX([0xF0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7]);
+                await new Promise(r => setTimeout(r, 100));
+                for (let ch = 0; ch < 16; ch++) {
+                    sendSX([0xF0, 0x43, 0x10, 0x4C, 0x08, ch, 0x0E, 0x01, 0xF7]);
+                }
+                setLFOControl(channel);
             }
 
             function onMIDIFailure(msg) {
